@@ -7,6 +7,7 @@ const RapidFireMultiplier = () => {
     expert: { time: 45, range1: [10, 50], range2: [10, 100], bonusPoints: 30 },
   };
 
+  // useState definitions
   const [level, setLevel] = useState('starter');
   const [timeLeft, setTimeLeft] = useState(null);
   const [countdown, setCountdown] = useState(3);
@@ -15,14 +16,16 @@ const RapidFireMultiplier = () => {
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
-  const [gameData, setGameData] = useState([]);
-  const [user, setUser] = useState({ username: '', isGuest: true });
+  const [gameData, setGameData] = useState([]);   // API ****************
+  const [user, setUser] = useState({ username: '', isGuest: true }); // SS *************
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
-  const [hiScore, setHiScore] = useState(Number(sessionStorage.getItem('hiScore')) || 0);  // Hi Score from sessionStorage
+  const [hiScore, setHiScore] = useState(Number(sessionStorage.getItem('hiScore')) || 0); // SS **************
+  // useRef for the answer
   const answerInputRef = useRef(null);
 
+  // Generate a single question/equation/problem
   const generateProblem = () => {
     const { range1, range2 } = levels[level];
     const num1 = Math.floor(Math.random() * (range1[1] - range1[0] + 1)) + range1[0];
@@ -30,7 +33,9 @@ const RapidFireMultiplier = () => {
     setProblem({ num1, num2 });
   };
 
+  // Set up a game/round
   const startGame = (selectedLevel) => {
+    // Set the useState variables
     setLevel(selectedLevel);
     setScore(0);
     setCorrectAnswers(0);
@@ -40,7 +45,9 @@ const RapidFireMultiplier = () => {
     setCountdown(3);
     setIsGameRunning(false);
 
+    // Pre-game countdown, and initiates a game
     const countdownInterval = setInterval(() => {
+      // Use a useState updater function to manage the countdown
       setCountdown((prev) => {
         if (prev === 1) {
           clearInterval(countdownInterval);
@@ -50,27 +57,32 @@ const RapidFireMultiplier = () => {
         }
         return prev - 1;
       });
-    }, 1000);
+      // Adjust the countdown speed as needed
+    }, 800);
   };
 
   useEffect(() => {
+    // Create a new timer every second, until reach the limit of seconds for a game
     if (isGameRunning && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
+      // Timer expired, conclude the game
       setIsGameRunning(false);
       // Check if the current score is higher than the hiScore
       if (score > hiScore) {
         setHiScore(score);
-        sessionStorage.setItem('hiScore', score);  // Store the new Hi Score
+        // Store the new Hi Score in sessionStorage
+        sessionStorage.setItem('hiScore', score);  
       }
-    }
+    } // END else...if
   }, [isGameRunning, timeLeft, score, hiScore]);
 
+  // Process a generated game question, and answer
   const checkAnswer = () => {
     const correctAnswer = problem.num1 * problem.num2;
     const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
-
+    // Update the gameData with the question/problem/equation
     setGameData((prevData) => [
       ...prevData,
       {
@@ -82,8 +94,10 @@ const RapidFireMultiplier = () => {
       },
     ]);
 
+    // Update the number of attemptedQuestions
     setAttemptedQuestions((prev) => prev + 1);
 
+    // User feedback
     if (isCorrect) {
       setCorrectAnswers((prev) => prev + 1);
       setFeedback('Correct!');
@@ -91,32 +105,40 @@ const RapidFireMultiplier = () => {
       setFeedback(`Incorrect! The correct answer was ${correctAnswer}.`);
     }
 
+    // Update the score when a question is answered
     const baseScore = (correctAnswers + (isCorrect ? 1 : 0)) * 10;
     const bonus = levels[level].bonusPoints;
     setScore(baseScore + bonus);
 
+    // Display the Feedback (adjust time as needed)
     setTimeout(() => setFeedback(''), 2000);
 
+    // Reset the input & generate a new question
     setUserAnswer('');
     generateProblem();
   };
 
+  // ======================= USER ================================
+  // *** LOGIN a user ***
   const handleLogin = (username) => {
     setUser({ username, isGuest: false });
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify({ username, isGuest: false }));
   };
 
+  // *** REGISTER a user ***
   const handleRegister = (username) => {
     handleLogin(username);
   };
 
+  // *** Guest ***
   const handleGuest = () => {
     setUser({ username: 'Guest', isGuest: true });
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify({ username: 'Guest', isGuest: true }));
   };
 
+  // *** ONCE USER EXISTS ***
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) {
@@ -124,12 +146,53 @@ const RapidFireMultiplier = () => {
       setIsAuthenticated(true);
     }
   }, []);
+  // ======================= END USER ================================
 
+  // Cancel game early
   const cancelGame = () => {
     setIsGameRunning(false);
     setTimeLeft(null);
     setCountdown(3);
   };
+
+  // Send the game data to the database via API
+  const updateGameScore = async () => {
+    const scoreData = {
+      difficulty: level,
+      q_and_a: gameData,
+      score: score,
+      curr_hi_score: hiScore,
+    };
+    console.log("JSON data:", JSON.stringify(scoreData));
+
+    try {
+      const response = await fetch(`http://localhost:3001/data/${user.username}/process`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(scoreData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Game score updated successfully', result);
+      } else {
+        console.error('Error updating score');
+      }
+    } catch (error) {
+      console.error('Error with API request:', error);
+    }
+  };
+
+  // Use useEffect to trigger API call when game ends
+  useEffect(() => {
+    if (!isGameRunning && timeLeft === 0) {
+      updateGameScore();
+    }
+  }, [isGameRunning, timeLeft, gameData, score, hiScore]);
+
+  // START RETURN
 
   return (
     <div className="game-container">
