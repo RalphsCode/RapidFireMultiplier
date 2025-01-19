@@ -1,3 +1,5 @@
+-- The tables to go in the rapidfiremultiplier database.
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
@@ -11,10 +13,10 @@ CREATE TABLE users (
 CREATE TABLE scores (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    q_and_a TEXT NOT NULL,
+    difficulty INT NOT NULL,
     score INT NOT NULL,
     curr_hi_score INT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    difficulty INT NOT NULL
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+    q_and_a TEXT NOT NULL   
 );
 
