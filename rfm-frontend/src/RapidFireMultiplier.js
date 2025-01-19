@@ -20,6 +20,7 @@ const RapidFireMultiplier = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
+  const [hiScore, setHiScore] = useState(Number(sessionStorage.getItem('hiScore')) || 0);  // Hi Score from sessionStorage
   const answerInputRef = useRef(null);
 
   const generateProblem = () => {
@@ -58,8 +59,13 @@ const RapidFireMultiplier = () => {
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
       setIsGameRunning(false);
+      // Check if the current score is higher than the hiScore
+      if (score > hiScore) {
+        setHiScore(score);
+        sessionStorage.setItem('hiScore', score);  // Store the new Hi Score
+      }
     }
-  }, [isGameRunning, timeLeft]);
+  }, [isGameRunning, timeLeft, score, hiScore]);
 
   const checkAnswer = () => {
     const correctAnswer = problem.num1 * problem.num2;
@@ -127,7 +133,7 @@ const RapidFireMultiplier = () => {
 
   return (
     <div className="game-container">
-      <h1>Rapid Fire Multiplication</h1>
+      <h1>Rapid Fire Multiplier</h1>
 
       {!isAuthenticated && (
         <div className="auth-container">
@@ -158,7 +164,10 @@ const RapidFireMultiplier = () => {
       )}
 
       {countdown > 0 && !isGameRunning && timeLeft !== null && (
-        <h2>Game starts in: {countdown}</h2>
+        <div>
+          <h2>Game starts in: {countdown}</h2>
+          <h3>Hi Score: {hiScore}</h3> {/* Display Hi Score during countdown */}
+        </div>
       )}
 
       {isGameRunning && (
@@ -194,6 +203,7 @@ const RapidFireMultiplier = () => {
           <h3>Total Problems Attempted: {attemptedQuestions}</h3>
           <h3>Correct Answers: {correctAnswers}</h3>
           <h3>Incorrect Answers: {attemptedQuestions - correctAnswers}</h3>
+          <h3>Hi Score: {hiScore}</h3> {/* Display Hi Score on game over */}
           <button onClick={() => startGame(level)}>Play Again</button>
           <pre>{JSON.stringify(gameData, null, 2)}</pre>
         </div>
