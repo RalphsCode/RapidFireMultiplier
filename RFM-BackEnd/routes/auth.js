@@ -39,7 +39,6 @@ router.post("/login", async (req, res, next) => {
     );
 
     const user = result.rows[0];
-    console.log("user from db:", user);
 
     // Check if the user exists
     if (!user) {
