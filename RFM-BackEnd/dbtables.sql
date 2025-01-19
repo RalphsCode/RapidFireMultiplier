@@ -4,15 +4,17 @@ CREATE TABLE users (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
+    password_hash TEXT NOT NULL,
+    curr_hi_score INT
 );
 
 CREATE TABLE scores (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    episode_data TEXT NOT NULL,
+    q_and_a TEXT NOT NULL,
     score INT NOT NULL,
     curr_hi_score INT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    difficulty INT NOT NULL
 );
 

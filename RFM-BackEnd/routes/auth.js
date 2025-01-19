@@ -5,17 +5,21 @@ const bcrypt = require("bcrypt");
 const db = require("../db"); // Import database connection
 const router = new express.Router();
 
-/** Existing user LOGIN
+/** =========================
+ *   Existing user LOGIN
+ *  =========================
  * 
- * POST /login route
+ * POST /auth/login route
+ * 
+ * The username and password are passed in the body as JSON.
  * 
  * Return Example:
- * { "user": {
-		"username": "Testy",
+ * { 	"user": {
+		"username": "Testy2",
 		"first_name": "Test",
 		"last_name": "User",
-		"password_hash": "$2b$10$RMHXIP8riKgT4z6n4nyOwugNPdISoZQNwZDqPUgbjpyt1z.5QTcQG"
-	}
+		"email": "test2y@none.com"
+    }  }
 
 } */ 
 router.post("/login", async (req, res, next) => {
@@ -28,7 +32,7 @@ router.post("/login", async (req, res, next) => {
 
     // Query the database for the user
     const result = await db.query(
-      `SELECT username, first_name, last_name, password_hash 
+      `SELECT username, first_name, last_name, email, password_hash 
        FROM users 
        WHERE username = $1`,
       [username]
@@ -49,8 +53,13 @@ router.post("/login", async (req, res, next) => {
       return res.status(400).json({ error: "Invalid username or password." });
     }
 
+    const outObj = {username: user.username, 
+                    first_name: user.first_name, 
+                    last_name: user.last_name, 
+                    email: user.email};
+
       // Respond with the user data
-      return res.status(200).json({ user: user  });
+      return res.status(200).json({ user : outObj  });
   } catch (err) {
     return next(err);
   }
@@ -58,11 +67,14 @@ router.post("/login", async (req, res, next) => {
 
 
 
-/** Route to Register a NEW USER.
+/** ================================ 
+ *   Register a NEW USER.
+ *  ================================
  * 
- * POST /register route
+ * POST /auth/register route
  * 
- * Example API body:
+ * Example of data passed in the API body:
+ *  - All fields are required.
  *  {
 	"username" : "Testy" ,
 	"password" : "pass123",
@@ -70,14 +82,14 @@ router.post("/login", async (req, res, next) => {
 	"last_name" : "User",
 	"email" : "testy@none.com"	
     } 
-    All fields are required.
     
     Return Example:
-        { "user": {
-		"username": "2Testy",
+        {  "user": {
+		"username": "Testy3",
 		"first_name": "Test",
-		"last_name": "User" }
-}
+		"last_name": "User",
+		"email": "testy3@none.com"
+	}  }
     */
 
 router.post("/register", async (req, res, next) => {
@@ -108,10 +120,10 @@ router.post("/register", async (req, res, next) => {
       // Insert the new user into the database
       const result = await db.query(
         `INSERT INTO users 
-         (username, first_name, last_name, email, password_hash) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING username, first_name, last_name`,
-        [username, first_name, last_name, email, passwordHash]
+         (username, first_name, last_name, email, password_hash, curr_hi_score) 
+         VALUES ($1, $2, $3, $4, $5, $6) 
+         RETURNING username, first_name, last_name, email`,
+        [username, first_name, last_name, email, passwordHash, 0]
       );
       
       // Returns (1)username, (2)first_name, (3)last_name

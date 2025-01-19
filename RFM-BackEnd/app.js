@@ -14,12 +14,14 @@ app.use(express.json());
 
 
 /** routes */
-
+const dataRoutes = require("./routes/data");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 
+app.use("/data", dataRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+
 
 // Need the following for render.com
 app.get('/', (req, res) => {
