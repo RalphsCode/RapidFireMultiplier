@@ -14,11 +14,11 @@ const router = new express.Router();
  * The username and password are passed in the body as JSON.
  * 
  * Return Example:
- * { 	"user": {
-		"username": "Testy2",
-		"first_name": "Test",
-		"last_name": "User",
-		"email": "test2y@none.com"
+ * { 	"username": "Testy",
+		"first_name": "Testy",
+		"last_name": "One",
+		"email": "newemail@none.com",
+		"curr_hi_score": 100
     }  }
 
 } */ 
@@ -32,7 +32,7 @@ router.post("/login", async (req, res, next) => {
 
     // Query the database for the user
     const result = await db.query(
-      `SELECT username, first_name, last_name, email, password_hash 
+      `SELECT username, first_name, last_name, email, curr_hi_score, password_hash
        FROM users 
        WHERE username = $1`,
       [username]
@@ -56,7 +56,8 @@ router.post("/login", async (req, res, next) => {
     const outObj = {username: user.username, 
                     first_name: user.first_name, 
                     last_name: user.last_name, 
-                    email: user.email};
+                    email: user.email,
+                    curr_hi_score: user.curr_hi_score};
 
       // Respond with the user data
       return res.status(200).json({ user : outObj  });
@@ -75,8 +76,8 @@ router.post("/login", async (req, res, next) => {
  * 
  * Example of data passed in the API body:
  *  - All fields are required.
- *  {
-	"username" : "Testy" ,
+ * 
+ *  {	"username" : "Testy" ,
 	"password" : "pass123",
 	"first_name" : "Test", 
 	"last_name" : "User",
@@ -85,10 +86,11 @@ router.post("/login", async (req, res, next) => {
     
     Return Example:
         {  "user": {
-		"username": "Testy3",
+		"username": "Test1",
 		"first_name": "Test",
 		"last_name": "User",
-		"email": "testy3@none.com"
+		"email": "testy1@none.com",
+		"curr_hi_score": 0
 	}  }
     */
 
@@ -122,7 +124,7 @@ router.post("/register", async (req, res, next) => {
         `INSERT INTO users 
          (username, first_name, last_name, email, password_hash, curr_hi_score) 
          VALUES ($1, $2, $3, $4, $5, $6) 
-         RETURNING username, first_name, last_name, email`,
+         RETURNING username, first_name, last_name, email, curr_hi_score`,
         [username, first_name, last_name, email, passwordHash, 0]
       );
       
