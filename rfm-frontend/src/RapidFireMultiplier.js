@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import GameHistory from './GameHistory';
+import {UpdateGameScore, UpdateUser} from './UpdateGameScore'; 
 
 const RapidFireMultiplier = () => {
   const levels = {
@@ -8,7 +10,7 @@ const RapidFireMultiplier = () => {
   };
 
   // useState definitions
-  const [level, setLevel] = useState('starter');
+  const [level, setLevel] = useState("starter");
   const [timeLeft, setTimeLeft] = useState(null);
   const [countdown, setCountdown] = useState(3);
   const [isGameRunning, setIsGameRunning] = useState(false);
@@ -21,7 +23,8 @@ const RapidFireMultiplier = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
-  const [hiScore, setHiScore] = useState(Number(sessionStorage.getItem('hiScore')) || 0); // SS **************
+  const [hiScore, setHiScore] = useState(Number(localStorage.getItem('hiScore')) || 0); // SS **************
+  const [totalPoints, setTotalPoints] = useState(Number(localStorage.getItem('totalPoints')) || 0);
   // useRef for the answer
   const answerInputRef = useRef(null);
 
@@ -69,11 +72,14 @@ const RapidFireMultiplier = () => {
     } else if (timeLeft === 0) {
       // Timer expired, conclude the game
       setIsGameRunning(false);
+      setTotalPoints((prev) => prev + score);
+      // Store the new Points Total in localStorage
+      localStorage.setItem('totalPoints', totalPoints);
       // Check if the current score is higher than the hiScore
       if (score > hiScore) {
         setHiScore(score);
-        // Store the new Hi Score in sessionStorage
-        sessionStorage.setItem('hiScore', score);  
+        // Store the new Hi Score in localStorage
+        localStorage.setItem('hiScore', score);  
       }
     } // END else...if
   }, [isGameRunning, timeLeft, score, hiScore]);
@@ -155,40 +161,11 @@ const RapidFireMultiplier = () => {
     setCountdown(3);
   };
 
-  // Send the game data to the database via API
-  const updateGameScore = async () => {
-    const scoreData = {
-      difficulty: level,
-      q_and_a: gameData,
-      score: score,
-      curr_hi_score: hiScore,
-    };
-    console.log("JSON data:", JSON.stringify(scoreData));
-
-    try {
-      const response = await fetch(`http://localhost:3001/data/${user.username}/process`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(scoreData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Game score updated successfully', result);
-      } else {
-        console.error('Error updating score');
-      }
-    } catch (error) {
-      console.error('Error with API request:', error);
-    }
-  };
-
   // Use useEffect to trigger API call when game ends
   useEffect(() => {
     if (!isGameRunning && timeLeft === 0) {
-      updateGameScore();
+      UpdateGameScore( user, level, gameData, score, hiScore, totalPoints );
+      UpdateUser( user, hiScore, totalPoints);
     }
   }, [isGameRunning, timeLeft, gameData, score, hiScore]);
 
@@ -256,19 +233,22 @@ const RapidFireMultiplier = () => {
           </div>
           {feedback && <p className="feedback">{feedback}</p>}
           <button onClick={cancelGame} className="cancel-button">End Game</button>
+          {/* Display Game History */}
+          <GameHistory gameData={gameData} />
         </div>
       )}
 
       {!isGameRunning && timeLeft === 0 && (
         <div className="game-over">
           <h2>Game Over!</h2>
-          <h3>Your Score: {score}</h3>
+          <h3>{Math.round(((correctAnswers/attemptedQuestions)*100), 1)}% Correct!</h3>
+          <h3>Points: {score}</h3>
           <h3>Total Problems Attempted: {attemptedQuestions}</h3>
           <h3>Correct Answers: {correctAnswers}</h3>
           <h3>Incorrect Answers: {attemptedQuestions - correctAnswers}</h3>
-          <h3>Hi Score: {hiScore}</h3> {/* Display Hi Score on game over */}
+          <h3>Total Points: {totalPoints}</h3>
+          <h3>Hi Score: {hiScore}</h3> 
           <button onClick={() => startGame(level)}>Play Again</button>
-          <pre>{JSON.stringify(gameData, null, 2)}</pre>
         </div>
       )}
     </div>

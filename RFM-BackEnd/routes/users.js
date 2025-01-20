@@ -53,10 +53,15 @@ router.get("/:username", async (req, res, next) => {
  * 
  * PATCH /users/:username/
  * 
- * Allows updating the user's first_name, last_name, email, or curr_hi_score.
+ * Allows updating the user's first_name, last_name, email, curr_hi_score, total_points.
  * One, some, or all, of those fields may be passed in the API body.
  * 
  * Request Body (JSON):
+ * 
+ * { "curr_hi_score": 180,
+     "total_points": 1200 }
+ * 
+ * OR
  * 
   {   "first_name": "Mr Test",
   "last_name": "Userrr",
@@ -65,18 +70,16 @@ router.get("/:username", async (req, res, next) => {
     }
  * 
  * Example output: 
- * {  "user": {
-		"username": "Testy",
-		"first_name": "Mr Test",
-		"last_name": "Userrr",
-		"email": "newemail@none.com",
-		"curr_hi_score": 100
-	} }
+ * {
+	"user": {
+		"id": 12
+	}
+}
  */
 router.patch("/:username", async (req, res, next) => {
   try {
     const { username } = req.params;
-    const { first_name, last_name, email, curr_hi_score } = req.body;
+    const { first_name, last_name, email, curr_hi_score, total_points } = req.body;
 
     // Update fields dynamically
     const fields = [];
@@ -99,6 +102,10 @@ router.patch("/:username", async (req, res, next) => {
       fields.push(`curr_hi_score = $${idx++}`);
       values.push(curr_hi_score);
     }
+    if (total_points !== undefined) {
+      fields.push(`total_points = $${idx++}`);
+      values.push(total_points);
+    }
 
     if (fields.length === 0) {
       return res.status(400).json({ error: "No data provided to update" });
@@ -111,7 +118,7 @@ router.patch("/:username", async (req, res, next) => {
       `UPDATE users
        SET ${fields.join(", ")}
        WHERE username = $${idx}
-       RETURNING username, first_name, last_name, email, curr_hi_score`,
+       RETURNING id`,
       values
     );
 

@@ -1,7 +1,5 @@
-/** Function to update the game score and results to the API */
-
-const updateGameScore = async () => {
-
+ // Send the game data to the database via API
+ const UpdateGameScore = async ( user, level, gameData, score, hiScore ) => {
   const scoreData = {
     difficulty: level,
     q_and_a: gameData,
@@ -11,7 +9,6 @@ const updateGameScore = async () => {
 
   try {
     const response = await fetch(`http://localhost:3001/data/${user.username}/process`, {
-      //  user.username,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,6 +25,35 @@ const updateGameScore = async () => {
   } catch (error) {
     console.error('Error with API request:', error);
   }
-};
+};  // END UpdateGameScore
 
-export default updateGameScore;
+
+// Update the User table with the hi-score and total points
+const UpdateUser = async ( user, hiScore, totalPoints) => {
+  const updateData = {
+    curr_hi_score: hiScore,
+    total_points: totalPoints,
+  };
+  console.log("User update data:", updateData);
+
+  try {
+    const response = await fetch(`http://localhost:3001/users/${user.username}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('User Scores updated successfully', result);
+    } else {
+      console.error('Error updating User scores');
+    }
+  } catch (error) {
+    console.error('Error with API request:', error);
+  }
+};    // END UpdateUser()
+
+export { UpdateGameScore, UpdateUser };
