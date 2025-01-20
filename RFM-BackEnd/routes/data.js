@@ -17,7 +17,8 @@ const router = new express.Router();
 	"difficulty": 1,
 	"q_and_a" : "1,23,5,25,25,1:2,20,10,200,200,1:",
 	"score" : 60, 
-	"curr_hi_score" : 80
+	"curr_hi_score" : 80,
+  "total_points" : 2080
     } 
 
 * Example output:
@@ -30,10 +31,10 @@ const router = new express.Router();
 router.post("/:username/process", async (req, res, next) => {
   try {
     const { username } = req.params;
-    const { difficulty, q_and_a, score, curr_hi_score } = req.body;
+    const { difficulty, q_and_a, score, curr_hi_score, total_points } = req.body;
 
     // Validate inputs
-    if ( !q_and_a || !score || !curr_hi_score) {
+    if ( !q_and_a || !score || !curr_hi_score || !total_points ) {
       return res.status(400).json({ error: "ERROR: some game data is missing" });
     }
 
@@ -53,10 +54,10 @@ router.post("/:username/process", async (req, res, next) => {
 
     // Insert game results
     const result = await db.query(  
-      `INSERT INTO scores (user_id, difficulty, q_and_a, score, curr_hi_score)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO scores (user_id, difficulty, q_and_a, score, curr_hi_score, total_points)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
-      [userId, difficulty, q_and_a, score, curr_hi_score]
+      [userId, difficulty, q_and_a, score, curr_hi_score, total_points]
     );
 
     const recordID = result.rows[0];

@@ -1,11 +1,13 @@
  // Send the game data to the database via API
- const UpdateGameScore = async ( user, level, gameData, score, hiScore ) => {
+ const UpdateGameScore = async ( user, level, gameData, score, hiScore, totalPoints ) => {
   const scoreData = {
     difficulty: level,
     q_and_a: gameData,
     score: score,
     curr_hi_score: hiScore,
+    total_points: totalPoints,
   };
+  console.log("scoreData to go to data API:", scoreData);
 
   try {
     const response = await fetch(`http://localhost:3001/data/${user.username}/process`, {

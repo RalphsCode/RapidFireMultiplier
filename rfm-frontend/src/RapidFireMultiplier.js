@@ -5,13 +5,13 @@ import GameNavbar from './GameNavBar';
 
 const RapidFireMultiplier = () => {
   const levels = {
-    starter: { time: 8, range1: [1, 9], range2: [1, 12], bonusPoints: 10 },
-    intermediate: { time: 40, range1: [1, 20], range2: [1, 50], bonusPoints: 20 },
-    expert: { time: 45, range1: [10, 50], range2: [10, 100], bonusPoints: 30 },
+    1: { title: "Starter", time: 8, range1: [1, 9], range2: [1, 12], bonusPoints: 10 },
+    2: { title: "Intermediate", time: 40, range1: [1, 20], range2: [1, 50], bonusPoints: 20 },
+    3: { title: "Advanced", time: 45, range1: [10, 50], range2: [10, 100], bonusPoints: 30 },
   };
 
   // useState definitions
-  const [level, setLevel] = useState("starter");
+  const [level, setLevel] = useState(1);
   const [timeLeft, setTimeLeft] = useState(null);
   const [countdown, setCountdown] = useState(3);
   const [isGameRunning, setIsGameRunning] = useState(false);
@@ -19,12 +19,12 @@ const RapidFireMultiplier = () => {
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
-  const [gameData, setGameData] = useState([]);   // API ****************
-  const [user, setUser] = useState({ username: '', isGuest: true }); // SS *************
+  const [gameData, setGameData] = useState([]); 
+  const [user, setUser] = useState({ username: '', isGuest: true });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
-  const [hiScore, setHiScore] = useState(Number(localStorage.getItem('hiScore')) || 0); // SS **************
+  const [hiScore, setHiScore] = useState(Number(localStorage.getItem('hiScore')) || 0); 
   const [totalPoints, setTotalPoints] = useState(Number(localStorage.getItem('totalPoints')) || 0);
   // useRef for the answer
   const answerInputRef = useRef(null);
@@ -39,9 +39,8 @@ const RapidFireMultiplier = () => {
 
   // Set up a game/round
   const startGame = (selectedLevel) => {
-    // Set the useState variables
     setLevel(selectedLevel);
-    setScore(0);
+    setScore(levels[level].bonusPoints);
     setCorrectAnswers(0);
     setAttemptedQuestions(0);
     setGameData([]);
@@ -49,9 +48,7 @@ const RapidFireMultiplier = () => {
     setCountdown(3);
     setIsGameRunning(false);
 
-    // Pre-game countdown, and initiates a game
     const countdownInterval = setInterval(() => {
-      // Use a useState updater function to manage the countdown
       setCountdown((prev) => {
         if (prev === 1) {
           clearInterval(countdownInterval);
@@ -61,116 +58,117 @@ const RapidFireMultiplier = () => {
         }
         return prev - 1;
       });
-      // Adjust the countdown speed as needed
     }, 800);
   };
 
-  useEffect(() => {
-    // Create a new timer every second, until reach the limit of seconds for a game
-    if (isGameRunning && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      // Timer expired, conclude the game
-      setIsGameRunning(false);
-      setTotalPoints((prev) => prev + score);
-      // Store the new Points Total in localStorage
-      localStorage.setItem('totalPoints', totalPoints);
-      // Check if the current score is higher than the hiScore
-      if (score > hiScore) {
-        setHiScore(score);
-        // Store the new Hi Score in localStorage
-        localStorage.setItem('hiScore', score);  
-      }
-    } // END else...if
-  }, [isGameRunning, timeLeft, score, hiScore]);
+//////////////////////  END GAME  /////////////////
+useEffect(() => {
+  if (isGameRunning && timeLeft > 0) {
+    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    return () => clearTimeout(timer);
+  } else if (timeLeft === 0 && isGameRunning) {  
+    
 
-  // Process a generated game question, and answer
-  const checkAnswer = () => {
-    const correctAnswer = problem.num1 * problem.num2;
-    const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
-    // Update the gameData with the question/problem/equation
-    setGameData((prevData) => [
-      ...prevData,
-      {
-        question: `${problem.num1} x ${problem.num2}`,
-        correctAnswer,
-        enteredAnswer: userAnswer,
-        level,
-        isCorrect,
-      },
-    ]);
+    const newTotalPoints = totalPoints + score;
 
-    // Update the number of attemptedQuestions
-    setAttemptedQuestions((prev) => prev + 1);
-
-    // User feedback
-    if (isCorrect) {
-      setCorrectAnswers((prev) => prev + 1);
-      setFeedback('Correct!');
-    } else {
-      setFeedback(`Incorrect! The correct answer was ${correctAnswer}.`);
+    // Update state and local storage
+    setTotalPoints(newTotalPoints);
+    localStorage.setItem('totalPoints', newTotalPoints);
+  
+    if (score > hiScore) {
+      setHiScore(score);
+      localStorage.setItem('hiScore', score);  
     }
+  
+    // Call update functions with the calculated new totalPoints
+    UpdateGameScore(user, level, gameData, score, hiScore, newTotalPoints);
+    UpdateUser(user, hiScore, newTotalPoints);
 
-    // Update the score when a question is answered
-    const baseScore = (correctAnswers + (isCorrect ? 1 : 0)) * 10;
-    const bonus = levels[level].bonusPoints;
-    setScore(baseScore + bonus);
+    // Timer expired, conclude the game
+    setIsGameRunning(false);
+  }
+}, [isGameRunning, timeLeft, score, hiScore, user, level, gameData, totalPoints]);
 
-    // Display the Feedback (adjust time as needed)
-    setTimeout(() => setFeedback(''), 2000);
+////////////////////  END END GAME  /////////////////
 
-    // Reset the input & generate a new question
-    setUserAnswer('');
-    generateProblem();
-  };
+  // useEffect to handle totalPoints localStorage updates
+  useEffect(() => {
+    localStorage.setItem('totalPoints', totalPoints);
+  }, [totalPoints]);
 
-  // ======================= USER ================================
-  // *** LOGIN a user ***
+
+const checkAnswer = () => {
+  const correctAnswer = problem.num1 * problem.num2;
+  const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
+
+  setGameData((prevData) => [
+    ...prevData,
+    {
+      Q: `${problem.num1} x ${problem.num2}`,
+      correctAnswer,
+      entAns: userAnswer,
+      level,
+      isCorrect,
+    },
+  ]);
+
+  setAttemptedQuestions((prev) => prev + 1);
+
+  if (isCorrect) {
+    setCorrectAnswers((prev) => prev + 1);
+    setFeedback(
+      <strong style={{ color: 'green' }}>
+        ✔️ Correct!
+      </strong>
+    );
+    setScore((prevScore) => prevScore + 10);
+  } else {
+    setFeedback(
+      <strong style={{ color: 'red' }}>
+        ❌ Incorrect! The correct answer was {correctAnswer}.
+      </strong>
+    );
+  }
+
+  setTimeout(() => setFeedback(''), 1500);
+  setUserAnswer('');
+  generateProblem();
+};
+
+  // User initialization effect with totalPoints
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedTotalPoints = Number(localStorage.getItem('totalPoints')) || 0;
+    if (storedUser) {
+      setUser(storedUser);
+      setIsAuthenticated(true);
+      setTotalPoints(storedTotalPoints);
+    }
+  }, []);
+
   const handleLogin = (username) => {
     setUser({ username, isGuest: false });
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify({ username, isGuest: false }));
   };
 
-  // *** REGISTER a user ***
   const handleRegister = (username) => {
     handleLogin(username);
   };
 
-  // *** Guest ***
   const handleGuest = () => {
     setUser({ username: 'Guest', isGuest: true });
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify({ username: 'Guest', isGuest: true }));
   };
 
-  // *** ONCE USER EXISTS ***
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      setUser(storedUser);
-      setIsAuthenticated(true);
-    }
-  }, []);
-  // ======================= END USER ================================
-
-  // Cancel game early
   const cancelGame = () => {
     setIsGameRunning(false);
     setTimeLeft(null);
     setCountdown(3);
   };
 
-  // Use useEffect to trigger API call when game ends
-  useEffect(() => {
-    if (!isGameRunning && timeLeft === 0) {
-      UpdateGameScore( user, level, gameData, score, hiScore, totalPoints );
-      UpdateUser( user, hiScore, totalPoints);
-    }
-  }, [isGameRunning, timeLeft, gameData, score, hiScore]);
-
-  // START RETURN
+///////////////////////////   START RETURN  /////////////////////////
 
   return (
     <div className="game-container">
@@ -199,7 +197,7 @@ const RapidFireMultiplier = () => {
           <h2>Welcome, {user.username}!</h2>
           <h2>Select Level</h2>
           {Object.keys(levels).map((lvl) => (
-            <button key={lvl} onClick={() => startGame(lvl)}>{lvl}</button>
+            <button key={lvl} onClick={() => startGame(lvl)}>{levels[lvl].title}</button>
           ))}
         </div>
       )}
@@ -207,7 +205,7 @@ const RapidFireMultiplier = () => {
       {countdown > 0 && !isGameRunning && timeLeft !== null && (
         <div>
           <h2>Game starts in: {countdown}</h2>
-          <h3>Hi Score: {hiScore}</h3> {/* Display Hi Score during countdown */}
+          <h3>Hi Score: {hiScore}</h3>
         </div>
       )}
 
@@ -234,7 +232,6 @@ const RapidFireMultiplier = () => {
           </div>
           {feedback && <p className="feedback">{feedback}</p>}
           <button onClick={cancelGame} className="cancel-button">End Game</button>
-          {/* Display Game History */}
           <GameHistory gameData={gameData} />
         </div>
       )}
