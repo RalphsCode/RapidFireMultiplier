@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GameHistory from './GameHistory';
 import {UpdateGameScore, UpdateUser} from './UpdateGameScore'; 
+import GameNavbar from './GameNavBar';
 
 const RapidFireMultiplier = () => {
   const levels = {
-    starter: { time: 35, range1: [1, 9], range2: [1, 12], bonusPoints: 10 },
+    starter: { time: 8, range1: [1, 9], range2: [1, 12], bonusPoints: 10 },
     intermediate: { time: 40, range1: [1, 20], range2: [1, 50], bonusPoints: 20 },
     expert: { time: 45, range1: [10, 50], range2: [10, 100], bonusPoints: 30 },
   };
@@ -173,7 +174,7 @@ const RapidFireMultiplier = () => {
 
   return (
     <div className="game-container">
-      <h1>Rapid Fire Multiplier</h1>
+      <GameNavbar onLogin={handleLogin} onRegister={handleRegister} />
 
       {!isAuthenticated && (
         <div className="auth-container">
@@ -240,14 +241,24 @@ const RapidFireMultiplier = () => {
 
       {!isGameRunning && timeLeft === 0 && (
         <div className="game-over">
-          <h2>Game Over!</h2>
+          <h2>Game Over {user.username}!</h2>
           <h3>{Math.round(((correctAnswers/attemptedQuestions)*100), 1)}% Correct!</h3>
-          <h3>Points: {score}</h3>
-          <h3>Total Problems Attempted: {attemptedQuestions}</h3>
+          <h3>Score: {score}</h3>
+          <h3>High Score: 
+            {user.username === "Guest" ? 
+              " Register/Login for this feature" : 
+              hiScore 
+            }
+          </h3> 
+          <h3>Total Points: 
+                {user.username === "Guest" ? 
+                  " Register/Login for this feature" : 
+                  totalPoints 
+                }
+          </h3>
+          <h3>Equations: {attemptedQuestions}</h3>
           <h3>Correct Answers: {correctAnswers}</h3>
           <h3>Incorrect Answers: {attemptedQuestions - correctAnswers}</h3>
-          <h3>Total Points: {totalPoints}</h3>
-          <h3>Hi Score: {hiScore}</h3> 
           <button onClick={() => startGame(level)}>Play Again</button>
         </div>
       )}
