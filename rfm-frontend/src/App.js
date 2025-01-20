@@ -1,13 +1,34 @@
+import React, { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Routes, Route } from 'react-router-dom';
+import GameNavBar from './GameNavBar';
 import RapidFireMultiplier from './RapidFireMultiplier';
+import Login from './Login';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const authUpdater = (state) => {
+    setIsAuthenticated(state);
+  };
+
   return (
-    <div>
-      <RapidFireMultiplier />
-      </div>
+    <>
+      <GameNavBar />
+      <Routes>
+        <Route
+          path="/"
+          element={<RapidFireMultiplier isAuthenticated={isAuthenticated} toggleAuth={authUpdater} />}
+        />
+        <Route
+          path="/login"
+          element={<Login isAuthenticated={isAuthenticated} toggleAuth={authUpdater} />}
+        />
+      </Routes>
+    </>
   );
 }
 
 export default App;
+

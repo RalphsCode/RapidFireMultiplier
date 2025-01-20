@@ -18,7 +18,8 @@ const router = new express.Router();
 		"first_name": "Testy",
 		"last_name": "One",
 		"email": "newemail@none.com",
-		"curr_hi_score": 100
+		"curr_hi_score": 100,
+    "total_points": 1800
     }  }
 
 } */ 
@@ -32,7 +33,7 @@ router.post("/login", async (req, res, next) => {
 
     // Query the database for the user
     const result = await db.query(
-      `SELECT username, first_name, last_name, email, curr_hi_score, password_hash
+      `SELECT username, first_name, last_name, email, curr_hi_score, total_points, password_hash
        FROM users 
        WHERE username = $1`,
       [username]
@@ -56,7 +57,8 @@ router.post("/login", async (req, res, next) => {
                     first_name: user.first_name, 
                     last_name: user.last_name, 
                     email: user.email,
-                    curr_hi_score: user.curr_hi_score};
+                    curr_hi_score: user.curr_hi_score,
+                    total_points: user.total_points};
 
       // Respond with the user data
       return res.status(200).json({ user : outObj  });

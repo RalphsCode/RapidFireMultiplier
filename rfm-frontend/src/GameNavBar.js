@@ -1,14 +1,15 @@
 import React from 'react';
-import './GameNavBar.css'; // Import the CSS file for styling
+import './GameNavBar.css'; 
 
-const GameNavbar = ({ onLogin = () => {}, onRegister = () => {} }) => {
+const GameNavBar = ({ onLogin = () => {}, onRegister = () => {} }) => {
   const storedUser = JSON.parse(localStorage.getItem('user')) || null;
 
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('hiScore');
     localStorage.removeItem('totalPoints');
-    window.location.reload(); // Refresh the page after logout
+     // Refresh the page after logout
+    window.location.reload();
   };
 
   return (
@@ -39,4 +40,4 @@ const GameNavbar = ({ onLogin = () => {}, onRegister = () => {} }) => {
   );
 };
 
-export default GameNavbar;
+export default GameNavBar;

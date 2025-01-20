@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GameHistory from './GameHistory';
-import {UpdateGameScore, UpdateUser} from './UpdateGameScore'; 
-import GameNavbar from './GameNavBar';
+import { UpdateGameScore, UpdateUser } from './UpdateGameScore';
 
-const RapidFireMultiplier = () => {
+const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
+  const navigate = useNavigate();
   const levels = {
     1: { title: "Starter", time: 8, range1: [1, 9], range2: [1, 12], bonusPoints: 10 },
     2: { title: "Intermediate", time: 40, range1: [1, 20], range2: [1, 50], bonusPoints: 20 },
     3: { title: "Advanced", time: 45, range1: [10, 50], range2: [10, 100], bonusPoints: 30 },
   };
 
-  // useState definitions
+  // Refs
+  const answerInputRef = useRef(null);
+  const usernameInputRef = useRef(null);
+
+  // State definitions
   const [level, setLevel] = useState(1);
   const [timeLeft, setTimeLeft] = useState(null);
   const [countdown, setCountdown] = useState(3);
@@ -19,17 +24,13 @@ const RapidFireMultiplier = () => {
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
-  const [gameData, setGameData] = useState([]); 
+  const [gameData, setGameData] = useState([]);
   const [user, setUser] = useState({ username: '', isGuest: true });
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
-  const [hiScore, setHiScore] = useState(Number(localStorage.getItem('hiScore')) || 0); 
+  const [hiScore, setHiScore] = useState(Number(localStorage.getItem('hiScore')) || 0);
   const [totalPoints, setTotalPoints] = useState(Number(localStorage.getItem('totalPoints')) || 0);
-  // useRef for the answer
-  const answerInputRef = useRef(null);
 
-  // Generate a single question/equation/problem
   const generateProblem = () => {
     const { range1, range2 } = levels[level];
     const num1 = Math.floor(Math.random() * (range1[1] - range1[0] + 1)) + range1[0];
@@ -37,10 +38,9 @@ const RapidFireMultiplier = () => {
     setProblem({ num1, num2 });
   };
 
-  // Set up a game/round
   const startGame = (selectedLevel) => {
     setLevel(selectedLevel);
-    setScore(levels[level].bonusPoints);
+    setScore(levels[selectedLevel].bonusPoints);
     setCorrectAnswers(0);
     setAttemptedQuestions(0);
     setGameData([]);
@@ -54,111 +54,106 @@ const RapidFireMultiplier = () => {
           clearInterval(countdownInterval);
           setIsGameRunning(true);
           generateProblem();
-          setTimeout(() => answerInputRef.current?.focus(), 0);
+          requestAnimationFrame(() => {
+            if (answerInputRef.current) {
+              answerInputRef.current.focus();
+            }
+          });
         }
         return prev - 1;
       });
     }, 800);
   };
 
-//////////////////////  END GAME  /////////////////
-useEffect(() => {
-  if (isGameRunning && timeLeft > 0) {
-    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    return () => clearTimeout(timer);
-  } else if (timeLeft === 0 && isGameRunning) {  
-    
+  useEffect(() => {
+    if (isGameRunning && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0 && isGameRunning) {
+      const newTotalPoints = totalPoints + score;
+      setTotalPoints(newTotalPoints);
+      localStorage.setItem('totalPoints', newTotalPoints);
 
-    const newTotalPoints = totalPoints + score;
+      if (score > hiScore) {
+        setHiScore(score);
+        localStorage.setItem('hiScore', score);
+      }
 
-    // Update state and local storage
-    setTotalPoints(newTotalPoints);
-    localStorage.setItem('totalPoints', newTotalPoints);
-  
-    if (score > hiScore) {
-      setHiScore(score);
-      localStorage.setItem('hiScore', score);  
+      UpdateGameScore(user, level, gameData, score, hiScore, newTotalPoints);
+      UpdateUser(user, hiScore, newTotalPoints);
+      setIsGameRunning(false);
     }
-  
-    // Call update functions with the calculated new totalPoints
-    UpdateGameScore(user, level, gameData, score, hiScore, newTotalPoints);
-    UpdateUser(user, hiScore, newTotalPoints);
+  }, [isGameRunning, timeLeft, score, hiScore, user, level, gameData, totalPoints]);
 
-    // Timer expired, conclude the game
-    setIsGameRunning(false);
-  }
-}, [isGameRunning, timeLeft, score, hiScore, user, level, gameData, totalPoints]);
-
-////////////////////  END END GAME  /////////////////
-
-  // useEffect to handle totalPoints localStorage updates
   useEffect(() => {
     localStorage.setItem('totalPoints', totalPoints);
   }, [totalPoints]);
 
+  const checkAnswer = () => {
+    const correctAnswer = problem.num1 * problem.num2;
+    const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
 
-const checkAnswer = () => {
-  const correctAnswer = problem.num1 * problem.num2;
-  const isCorrect = parseInt(userAnswer, 10) === correctAnswer;
+    setGameData((prevData) => [
+      ...prevData,
+      {
+        Q: `${problem.num1} x ${problem.num2}`,
+        correctAnswer,
+        entAns: userAnswer,
+        level,
+        isCorrect,
+      },
+    ]);
 
-  setGameData((prevData) => [
-    ...prevData,
-    {
-      Q: `${problem.num1} x ${problem.num2}`,
-      correctAnswer,
-      entAns: userAnswer,
-      level,
-      isCorrect,
-    },
-  ]);
+    setAttemptedQuestions((prev) => prev + 1);
 
-  setAttemptedQuestions((prev) => prev + 1);
+    if (isCorrect) {
+      setCorrectAnswers((prev) => prev + 1);
+      setFeedback(
+        <strong style={{ color: 'green' }}>
+          ✔️ Correct!
+        </strong>
+      );
+      setScore((prevScore) => prevScore + 10);
+    } else {
+      setFeedback(
+        <strong style={{ color: 'red' }}>
+          ❌ Incorrect! The correct answer was {correctAnswer}.
+        </strong>
+      );
+    }
 
-  if (isCorrect) {
-    setCorrectAnswers((prev) => prev + 1);
-    setFeedback(
-      <strong style={{ color: 'green' }}>
-        ✔️ Correct!
-      </strong>
-    );
-    setScore((prevScore) => prevScore + 10);
-  } else {
-    setFeedback(
-      <strong style={{ color: 'red' }}>
-        ❌ Incorrect! The correct answer was {correctAnswer}.
-      </strong>
-    );
-  }
+    setTimeout(() => setFeedback(''), 1500);
+    setUserAnswer('');
+    generateProblem();
+  };
 
-  setTimeout(() => setFeedback(''), 1500);
-  setUserAnswer('');
-  generateProblem();
-};
-
-  // User initialization effect with totalPoints
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const storedTotalPoints = Number(localStorage.getItem('totalPoints')) || 0;
     if (storedUser) {
       setUser(storedUser);
-      setIsAuthenticated(true);
+      toggleAuth(true);
       setTotalPoints(storedTotalPoints);
     }
   }, []);
 
-  const handleLogin = (username) => {
-    setUser({ username, isGuest: false });
-    setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify({ username, isGuest: false }));
+  const handleLogin = () => {
+    const username = usernameInputRef.current?.value;
+    if (username) {
+      navigate('/login');
+    }
   };
 
-  const handleRegister = (username) => {
-    handleLogin(username);
+  const handleRegister = () => {
+    const username = usernameInputRef.current?.value;
+    if (username) {
+      navigate('/login');
+    }
   };
 
   const handleGuest = () => {
     setUser({ username: 'Guest', isGuest: true });
-    setIsAuthenticated(true);
+    toggleAuth(true);
     localStorage.setItem('user', JSON.stringify({ username: 'Guest', isGuest: true }));
   };
 
@@ -168,24 +163,20 @@ const checkAnswer = () => {
     setCountdown(3);
   };
 
-///////////////////////////   START RETURN  /////////////////////////
-
   return (
     <div className="game-container">
-      <GameNavbar onLogin={handleLogin} onRegister={handleRegister} />
-
       {!isAuthenticated && (
         <div className="auth-container">
           <h2>Login or Register</h2>
           <input
+            ref={usernameInputRef}
             type="text"
             placeholder="Enter username"
-            id="username-input"
           />
-          <button onClick={() => handleLogin(document.getElementById('username-input').value)}>
+          <button onClick={handleLogin}>
             Login
           </button>
-          <button onClick={() => handleRegister(document.getElementById('username-input').value)}>
+          <button onClick={handleRegister}>
             Register
           </button>
           <button onClick={handleGuest}>Continue as Guest</button>
@@ -196,8 +187,8 @@ const checkAnswer = () => {
         <div className="level-selector">
           <h2>Welcome, {user.username}!</h2>
           <h2>Select Level</h2>
-          {Object.keys(levels).map((lvl) => (
-            <button key={lvl} onClick={() => startGame(lvl)}>{levels[lvl].title}</button>
+          {Object.entries(levels).map(([lvl, { title }]) => (
+            <button key={lvl} onClick={() => startGame(Number(lvl))}>{title}</button>
           ))}
         </div>
       )}
@@ -222,11 +213,11 @@ const checkAnswer = () => {
           <div className="problem">
             <h3>{problem.num1} x {problem.num2}</h3>
             <input
+              ref={answerInputRef}
               type="number"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
-              ref={answerInputRef}
             />
             <button onClick={checkAnswer}>Submit</button>
           </div>
@@ -239,20 +230,10 @@ const checkAnswer = () => {
       {!isGameRunning && timeLeft === 0 && (
         <div className="game-over">
           <h2>Game Over {user.username}!</h2>
-          <h3>{Math.round(((correctAnswers/attemptedQuestions)*100), 1)}% Correct!</h3>
+          <h3>{Math.round((correctAnswers / attemptedQuestions) * 100)}% Correct!</h3>
           <h3>Score: {score}</h3>
-          <h3>High Score: 
-            {user.username === "Guest" ? 
-              " Register/Login for this feature" : 
-              hiScore 
-            }
-          </h3> 
-          <h3>Total Points: 
-                {user.username === "Guest" ? 
-                  " Register/Login for this feature" : 
-                  totalPoints 
-                }
-          </h3>
+          <h3>High Score: {user.username === "Guest" ? " Register/Login for this feature" : hiScore}</h3>
+          <h3>Total Points: {user.username === "Guest" ? " Register/Login for this feature" : totalPoints}</h3>
           <h3>Equations: {attemptedQuestions}</h3>
           <h3>Correct Answers: {correctAnswers}</h3>
           <h3>Incorrect Answers: {attemptedQuestions - correctAnswers}</h3>
