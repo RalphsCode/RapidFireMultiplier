@@ -10,10 +10,12 @@ import Register from './Register';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Function to update isAuthenticated, passed to child Components
   const authUpdater = (state) => {
     setIsAuthenticated(state);
   };
 
+  /////////////////////////////////// RETURN //////////////////////////////////
   return (
     <>
       <GameNavBar />

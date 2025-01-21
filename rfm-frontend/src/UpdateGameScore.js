@@ -10,7 +10,7 @@
   console.log("scoreData to go to data API:", scoreData);
 
   try {
-    const response = await fetch(`http://localhost:3001/data/${user.username}/process`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}data/${user.username}/process`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ const UpdateUser = async ( user, hiScore, totalPoints) => {
   console.log("User update data:", updateData);
 
   try {
-    const response = await fetch(`http://localhost:3001/users/${user.username}`, {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}users/${user.username}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

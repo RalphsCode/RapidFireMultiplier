@@ -1,5 +1,7 @@
 import React from 'react';
 
+// This Component displays the completed questions and answers during the game
+// Not using this currently.
 const GameHistory = ({ gameData }) => {
   return (
     <div className="game-history">

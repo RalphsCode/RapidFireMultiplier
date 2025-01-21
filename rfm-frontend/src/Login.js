@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './Login.css';
 import { useNavigate } from 'react-router-dom';
 
+// Function to present and process the Login form, authenticate user, and set localStorage variables
 function Login({ isAuthenticated, toggleAuth }) {
   const navigate = useNavigate();
   const [inputUsername, setInputUsername] = useState('');
@@ -9,6 +11,7 @@ function Login({ isAuthenticated, toggleAuth }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // FUnction to handle when a user has submitted their credentials
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
@@ -21,14 +24,17 @@ function Login({ isAuthenticated, toggleAuth }) {
 
     setLoading(true);
 
+    // Send the data to the API endpoint
     try {
-      const response = await axios.post('http://localhost:3001/auth/login', {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}auth/login`, {
         username: inputUsername,  
         password: inputPassword,  
       });
 
+      // Useful to see what the frontend is sending to the backend
       console.log("Username and password going to server via API:", inputUsername, inputPassword);
 
+      // Retrieve the response data
       const {
         username,
         curr_hi_score,
@@ -62,6 +68,7 @@ function Login({ isAuthenticated, toggleAuth }) {
       // Redirect to home page
       navigate('/');
     } catch (error) {
+      // Error handling
       console.error('Login error:', error);
       if (error.response?.status === 401) {
         setError('Invalid username or password');
@@ -119,7 +126,7 @@ function Login({ isAuthenticated, toggleAuth }) {
         </button>
       </form>
     </div>
-  );
-}
+  );    // END return
+};  // END Login()
 
 export default Login;

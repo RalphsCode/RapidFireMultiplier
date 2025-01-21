@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
+import './Register.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+/** Function to display the registration form,
+ * Process the user entries, and send the information
+ * to be verified and processed via API call to the db.
+ */ 
 function Register({ isAuthenticated, toggleAuth }) {
   const navigate = useNavigate();
+
+  // useState Definitions
   const [inputUsername, setInputUsername] = useState('');
   const [inputPassword, setInputPassword] = useState('');
   const [inputFirstName, setInputFirstName] = useState('');
@@ -11,12 +18,14 @@ function Register({ isAuthenticated, toggleAuth }) {
   const [inputEmail, setInputEmail] = useState('');
   const [error, setError] = useState(null);
 
+  // handle the data when user submits the form
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
 
     try {
-      const response = await axios.post('http://localhost:3001/auth/register', {
+        // Send the user registration information to the API
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}auth/register`, {
         username: inputUsername,
         password: inputPassword,
         first_name: inputFirstName,
@@ -24,9 +33,10 @@ function Register({ isAuthenticated, toggleAuth }) {
         email: inputEmail,
       });
 
+    //   Deconstruct the response from the database/API
       const { username, curr_hi_score, total_points, first_name, last_name, email } = response.data.user;
 
-      // Store user data
+      // Assign new user data to a variable
       const userData = {
         username,
         isGuest: false,
@@ -52,7 +62,9 @@ function Register({ isAuthenticated, toggleAuth }) {
 
       // Redirect to home page
       navigate('/');
+
     } catch (error) {
+    // Catch errors gracefully
       console.error('Registration error:', error);
       if (error.response?.status === 400) {
         setError('User already exists');
@@ -62,14 +74,17 @@ function Register({ isAuthenticated, toggleAuth }) {
     }
   };
 
+  ////////////////////////////  RETURN /////////////////////////////
   return (
-    <div className="login-container">
+    <div className="register-container">
       <h2>Register</h2>
+      {/* Display any errors */}
       {error && (
         <div className="alert alert-danger" role="alert">
           {error}
         </div>
       )}
+      {/* Register Form */}
       <form onSubmit={handleSubmit} className="login-form">
         <div className="form-group">
           <label htmlFor="username">Username:</label>
@@ -134,7 +149,7 @@ function Register({ isAuthenticated, toggleAuth }) {
         </button>
       </form>
     </div>
-  );
-}
+  );     // END return
+}   // END Register()
 
 export default Register;
