@@ -76,6 +76,17 @@ body {
   .level-selector button:hover {
     background-color: #388e3c;
   }
+
+/* Default button style */
+.level-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 5px;
+    transition: background-color 0.3s;
+  }
   
   /* Countdown & Game Information */
   .game h2 {

@@ -140,17 +140,11 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
   }, []);
 
   const handleLogin = () => {
-    const username = usernameInputRef.current?.value;
-    if (username) {
       navigate('/login');
-    }
   };
 
   const handleRegister = () => {
-    const username = usernameInputRef.current?.value;
-    if (username) {
-      navigate('/login');
-    }
+      navigate('/register');
   };
 
   const handleGuest = () => {
@@ -172,7 +166,7 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
       {!isAuthenticated && (
         <div className="auth-container">
           <h2>Login or Register to save your scores.</h2>
-          <button onClick={handleLogin}>
+          <button onClick={startGame}>
             Login
           </button>
           <button onClick={handleRegister}>
@@ -224,14 +218,14 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
           </div>
           {feedback && <p className="feedback">{feedback}</p>}
           <button onClick={cancelGame} className="cancel-button">End Game</button>
-          <GameHistory gameData={gameData} />
+          {/* <GameHistory gameData={gameData} /> */}
         </div>
       )}
   
       {!isGameRunning && timeLeft === 0 && (
         <div className="game-over">
           <h2>Game Over {user.username}!</h2>
-          <h3>{Math.round((correctAnswers / attemptedQuestions) * 100)}% Correct!</h3>
+          <h3>{Math.round((correctAnswers / attemptedQuestions) * 100) || 0}% Correct!</h3>
           <h3>Score: {score}</h3>
           <h3>High Score: {user.username === "Guest" ? " Register/Login for this feature" : hiScore}</h3>
           <h3>Total Points: {user.username === "Guest" ? " Register/Login for this feature" : totalPoints}</h3>
