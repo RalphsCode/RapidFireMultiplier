@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import GameNavBar from './GameNavBar';
 import RapidFireMultiplier from './RapidFireMultiplier';
 import Login from './Login';
+import Register from './Register';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -24,6 +25,10 @@ function App() {
         <Route
           path="/login"
           element={<Login isAuthenticated={isAuthenticated} toggleAuth={authUpdater} />}
+        />
+                <Route
+          path="/register"
+          element={<Register isAuthenticated={isAuthenticated} toggleAuth={authUpdater} />}
         />
       </Routes>
     </>

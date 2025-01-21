@@ -1,8 +1,19 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './GameNavBar.css'; 
 
-const GameNavBar = ({ onLogin = () => {}, onRegister = () => {} }) => {
+const GameNavBar = () => {
   const storedUser = JSON.parse(localStorage.getItem('user')) || null;
+
+  const navigate = useNavigate();
+
+  const onLogin = () => {
+    navigate('/Login'); 
+  };
+
+  const onRegister = () => {
+    navigate('/Register'); 
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -14,7 +25,7 @@ const GameNavBar = ({ onLogin = () => {}, onRegister = () => {} }) => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">Rapid Fire Multiplier</div>
+      <div className="navbar-brand"><Link to="/" >Rapid Fire Multiplier</Link></div>
       <div className="navbar-links">
         {storedUser && storedUser.username !== 'Guest' ? (
           <>

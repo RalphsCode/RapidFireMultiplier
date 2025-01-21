@@ -4,36 +4,47 @@ import { useNavigate } from 'react-router-dom';
 
 function Login({ isAuthenticated, toggleAuth }) {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [inputUsername, setInputUsername] = useState('');
+  const [inputPassword, setInputPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
 
+    // Ensure username and password are set before accessing
+    if (inputUsername.trim() === '' || inputPassword.trim() === '') {
+      setError('Please fill in both fields.');
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', {
-        username,
-        password,
+      const response = await axios.post('http://localhost:3001/auth/login', {
+        username: inputUsername,  
+        password: inputPassword,  
       });
 
-      const { 
-        username: responseUsername, 
-        curr_hi_score, 
+      console.log("Username and password going to server via API:", inputUsername, inputPassword);
+
+      const {
+        username,
+        curr_hi_score,
         total_points,
         first_name,
         last_name,
-        email 
-      } = response.data;
+        email,
+      } = response.data.user;
 
       // Store user data
       const userData = {
-        username: responseUsername,
+        username,
         isGuest: false,
         firstName: first_name,
         lastName: last_name,
-        email: email
+        email,
       };
 
       // Set localStorage items
@@ -45,12 +56,11 @@ function Login({ isAuthenticated, toggleAuth }) {
       toggleAuth(true);
 
       // Clear form
-      setUsername('');
-      setPassword('');
+      setInputUsername('');
+      setInputPassword('');
 
       // Redirect to home page
       navigate('/');
-
     } catch (error) {
       console.error('Login error:', error);
       if (error.response?.status === 401) {
@@ -58,11 +68,15 @@ function Login({ isAuthenticated, toggleAuth }) {
       } else if (error.response?.status === 404) {
         setError('User not found');
       } else {
-        setError('An error occurred during login. Please try again.');
+        setError('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
+  ///////////////////////////////////// RETURN //////////////////
+  
   return (
     <div className="login-container">
       <h2>Login</h2>
@@ -77,9 +91,9 @@ function Login({ isAuthenticated, toggleAuth }) {
           <input
             type="text"
             id="username"
-            className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            className={`form-control ${error ? 'is-invalid' : ''}`}
+            value={inputUsername}
+            onChange={(e) => setInputUsername(e.target.value)}
             required
             autoComplete="username"
           />
@@ -89,15 +103,19 @@ function Login({ isAuthenticated, toggleAuth }) {
           <input
             type="password"
             id="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            className={`form-control ${error ? 'is-invalid' : ''}`}
+            value={inputPassword}
+            onChange={(e) => setInputPassword(e.target.value)}
             required
             autoComplete="current-password"
           />
         </div>
-        <button type="submit" className="btn btn-primary">
-          Login
+        <button 
+          type="submit" 
+          className="btn btn-primary" 
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>

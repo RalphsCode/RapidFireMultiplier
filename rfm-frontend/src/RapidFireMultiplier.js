@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameHistory from './GameHistory';
 import { UpdateGameScore, UpdateUser } from './UpdateGameScore';
+import './RapidFireMultiplier.css';
+
 
 const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
   const navigate = useNavigate();
@@ -163,16 +165,13 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
     setCountdown(3);
   };
 
+  //////////////////////////////////  RETURN   ////////////////////////////////////////
+
   return (
     <div className="game-container">
       {!isAuthenticated && (
         <div className="auth-container">
-          <h2>Login or Register</h2>
-          <input
-            ref={usernameInputRef}
-            type="text"
-            placeholder="Enter username"
-          />
+          <h2>Login or Register to save your scores.</h2>
           <button onClick={handleLogin}>
             Login
           </button>
@@ -182,24 +181,26 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
           <button onClick={handleGuest}>Continue as Guest</button>
         </div>
       )}
-
+  
       {isAuthenticated && !isGameRunning && timeLeft === null && (
         <div className="level-selector">
           <h2>Welcome, {user.username}!</h2>
           <h2>Select Level</h2>
           {Object.entries(levels).map(([lvl, { title }]) => (
-            <button key={lvl} onClick={() => startGame(Number(lvl))}>{title}</button>
+            <button key={lvl} onClick={() => startGame(Number(lvl))}>
+              {title}
+            </button>
           ))}
         </div>
       )}
-
+  
       {countdown > 0 && !isGameRunning && timeLeft !== null && (
         <div>
           <h2>Game starts in: {countdown}</h2>
           <h3>Hi Score: {hiScore}</h3>
         </div>
       )}
-
+  
       {isGameRunning && (
         <div className="game">
           <h2>Level: {level}</h2>
@@ -226,7 +227,7 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
           <GameHistory gameData={gameData} />
         </div>
       )}
-
+  
       {!isGameRunning && timeLeft === 0 && (
         <div className="game-over">
           <h2>Game Over {user.username}!</h2>
@@ -242,6 +243,7 @@ const RapidFireMultiplier = ({ isAuthenticated, toggleAuth }) => {
       )}
     </div>
   );
+  
 };
 
 export default RapidFireMultiplier;

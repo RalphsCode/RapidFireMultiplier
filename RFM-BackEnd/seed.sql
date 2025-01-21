@@ -34,8 +34,8 @@ CREATE TABLE scores (
     user_id INT REFERENCES users(id),
     difficulty INT DEFAULT 1,
     score INT NOT NULL,
-    total_points INT,
-    curr_hi_score INT NOT NULL,
+    total_points INT DEFAULT 0,
+    curr_hi_score INT DEFAULT 0,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     q_and_a TEXT NOT NULL   
 );
