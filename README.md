@@ -3,32 +3,33 @@ Start up and config settings below
 
 ## Rapid Fire Multiplier game
 
-This project is a multiplication game with user sign-in, allowing players to track their scores and high scores. User data and game history will be managed within a Postgres database via Supabase.
+This project is a multiplication game with user sign-in, allowing players to track their scores and high scores. User data and game history will be managed within a Postgres database via Supabase.  
+
 Gameplay involves a series of multiplication problems, with immediate visual feedback (red/green) indicating answer correctness. The next problem appears after a one-second delay, continuing until the timer runs out.
 
 ## The application has 2 parts
-(1) the FrontEnd built with React (CRA) with is the user facing part of the project.
+(1) the FrontEnd built with React (CRA) with is the user facing part of the project.  
 (2) the Backend built with Node and Express, which is an API server providing the connection between the frontend and the SQL database.
 
 # FrontEnd
-in the directory:   rfm-frontend\n
-Run:                npm start\n
+in the directory:   rfm-frontend  
+Run:                npm start  
 Site runs on port:  3000
 
 # SQL Database
-There is a seed file in the directory: RFM-BackEnd \n
+There is a seed file in the directory: RFM-BackEnd  
 The URI path should be defined in the .env file
 
 # BackEnd/API server
-The Backend runs on Node \n
-In the directory:   RFM-BackEnd \n
-Run:                npx nodemon \n
+The Backend runs on Node  
+In the directory:   RFM-BackEnd  
+Run:                npx nodemon  
 Site runs on port:  3001
 
 ## Project Description:
-This capstone project aims to develop an engaging and educational multiplication game designed to practice and improve users' multiplication skills. The game will feature three difficulty levels:
-Starter: Multiplication tables (single-digit numbers). For example: 5 * 6 =
-Intermediate: Single-digit numbers multiplied by 1-2 digit numbers. For example: 7 * 23 =
+This capstone project aims to develop an engaging and educational multiplication game designed to practice and improve users' multiplication skills. The game will feature three difficulty levels:  
+Starter: Multiplication tables (single-digit numbers). For example: 5 * 6 =  
+Intermediate: Single-digit numbers multiplied by 1-2 digit numbers. For example: 7 * 23 =  
 Advanced: Double-digit numbers multiplied by double digit numbers. For example: 12 * 24 = 
 
 ## Key Features:
@@ -47,7 +48,6 @@ Seamlessly transition to the next problem.
 
 Frontend: React for a dynamic and interactive user interface.
 Backend: React, Express, SQL, Supabase for database management (Postgres) and authentication.
-Styling: ReactStrap for a visually appealing design.
 
 ## Project Scope:
 
